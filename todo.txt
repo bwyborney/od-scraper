@@ -1,0 +1,24 @@
+Add the ability to quickly check a single SKU
+
+Add instructions
+
+Pull the SKU as well
+
+Add options to pull the price
+
+Add some sort of GUI or even TUI to make this more user-friendly
+
+Improve the formatting of the final output file
+
+Provide a list of common and popular SKUs including desks, chairs, monitors, computers, and printers
+
+Add the ability to add headers to the SKU list so the program can break everything into categories
+For example (and these are made-up SKUs)
+h-Printers
+465445
+840205
+h-Desks
+8563054
+9437399
+
+Compile everything into a package that users can download and use without having to understand Python or have to use a terminal emulator or install independent packages
