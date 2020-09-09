@@ -22,3 +22,7 @@ h-Desks
 9437399
 
 Compile everything into a package that users can download and use without having to understand Python or have to use a terminal emulator or install independent packages
+
+Add sorting options (sort by price, sort by name)
+
+Barcode generator
