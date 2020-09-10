@@ -20,7 +20,7 @@ def scraper(txtSKUS) :
     skus = open(txtSKUS)
 
     # These are all the possible terms I've found on the website so far
-    searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "Free Store Pickup in 1 Hour"]
+    searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "other"]
 
     for l in skus :
         statusFound = False
@@ -39,7 +39,7 @@ def scraper(txtSKUS) :
         print("Checking sku " + l)
 
         # Check the contents of the skuAvailability tag for each possible value, and once the correct one is found, send it to the resulter function
-        while statusFound == False :
+        while statusFound == False and stIndex < 5 :
             checkFor = searchTerms[stIndex]
             if checkFor in stringyThingy :
                 status = searchTerms[stIndex]
@@ -50,23 +50,35 @@ def scraper(txtSKUS) :
             else :
                 stIndex += 1
 
+        # Failback in case none of the search terms are found
+        if stIndex == 5 :
+            status = searchTerms[stIndex]
+            itemTitle = titleGrabber(url)
+            resulter(status, itemTitle)
+
     skus.close()
     finisher()
 
 ### Results sorter - pretty simple, just adds the product name to the correct list
 def resulter(writeValue, writeTitle) :
-    if writeValue == "Free Delivery" :
+    if writeValue == "Free delivery" :
         freeDel.append(writeTitle)
+        print("freeDel")
     elif writeValue == "Free next business day delivery" :
         freeNex.append(writeTitle)
+        print("freeNex")
     elif writeValue == "Out of stock for delivery" :
         outStk.append(writeTitle)
+        print("outStk")
     elif writeValue == "Available for future delivery" :
         futDel.append(writeTitle)
+        print("futDel")
     elif writeValue == "This item is no longer available" :
         cantHave.append(writeTitle)
-    elif writeValue == "Free Store Pickup in 1 Hour" :
-        storeOnly.append(writeTitle)
+        print("cantHave")
+    elif writeValue == "other" :
+        other.append(writeTitle)
+        print("other")
 
 
 ### Finalize - write all the product titles to a file under a heading that shows their availability
@@ -92,7 +104,7 @@ def finisher() :
         resultPage.write(r4 + '\n')
     for r5 in cantHave :
         resultPage.write(r5 + '\n')
-    for r6 in storeOnly :
+    for r6 in other :
         resultPage.write(r6 + '\n')
 
 
@@ -126,6 +138,6 @@ freeNex = []
 outStk = []
 futDel = []
 cantHave = []
-storeOnly = []
+other = []
 
 scraper("skus.txt")
