@@ -45,7 +45,7 @@ def scraper(txtSKUS) :
                 status = searchTerms[stIndex]
                 # Get the title of the product from the webpage
                 itemTitle = titleGrabber(url)
-                resulter(status, itemTitle)
+                resulter(status, itemTitle, l)
                 statusFound = True
             else :
                 stIndex += 1
@@ -54,58 +54,77 @@ def scraper(txtSKUS) :
         if stIndex == 5 :
             status = searchTerms[stIndex]
             itemTitle = titleGrabber(url)
-            resulter(status, itemTitle)
+            resulter(status, itemTitle, l)
 
     skus.close()
     finisher()
 
 ### Results sorter - pretty simple, just adds the product name to the correct list
-def resulter(writeValue, writeTitle) :
+def resulter(writeValue, writeTitle, itemSKU) :
     if writeValue == "Free delivery" :
         freeDel.append(writeTitle)
-        print("freeDel")
+        sfreeDel.append(itemSKU)
     elif writeValue == "Free next business day delivery" :
         freeNex.append(writeTitle)
-        print("freeNex")
+        sfreeNex.append(itemSKU)
     elif writeValue == "Out of stock for delivery" :
         outStk.append(writeTitle)
-        print("outStk")
+        soutStk.append(itemSKU)
     elif writeValue == "Available for future delivery" :
         futDel.append(writeTitle)
-        print("futDel")
+        sfutdel.append(itemSKU)
     elif writeValue == "This item is no longer available" :
         cantHave.append(writeTitle)
-        print("cantHave")
+        scantHave.append(itemSKU)
     elif writeValue == "other" :
         other.append(writeTitle)
-        print("other")
+        sother.append(itemSKU)
 
 
 ### Finalize - write all the product titles to a file under a heading that shows their availability
 def finisher() :
+    sr1 = 0
+    sr2 = 0
+    sr3 = 0
+    sr4 = 0
+    sr5 = 0
+    sr6 = 0
+
     # Append the results to a file called results. If there isn't such a file already, creates one
     resultPage = open("results", "a")
 
     # Products marked with "Free delivery" or "Free next business day delivery" are listed as available
     resultPage.write("---AVAILABLE---" + '\n')
     for r1 in freeDel :
-        resultPage.write(r1 + '\n')
+        resultPage.write(sfreeDel[sr1])
+        resultPage.write(r1 + '\n' + '\n')
+        sr1 += 1
     for r2 in freeNex :
-        resultPage.write(r2 + '\n')
+        resultPage.write(sfreeNex[sr2])
+        resultPage.write(r2 + '\n' + '\n')
+        sr2 += 1
 
     # Products marked with "Available for future delivery" are listed as backordered
     resultPage.write("----------" + '\n' + "---Backordered---" + '\n')
     for r3 in futDel :
-        resultPage.write(r3 + '\n')
+        resultPage.write(sfutDel[sr3])
+        resultPage.write(r3 + '\n' + '\n')
+        sr3 += 1
 
     # Products marked with "Out of stock for delivery" or "This item is no longer available" are listed as unavailable
     resultPage.write("----------" + '\n' + "---Unavailable---" + '\n')
     for r4 in outStk :
-        resultPage.write(r4 + '\n')
+        resultPage.write(soutStk[sr4])
+        resultPage.write(r4 + '\n' + '\n')
+        sr4 += 1
     for r5 in cantHave :
-        resultPage.write(r5 + '\n')
+        resultPage.write(scantHave[sr5])
+        resultPage.write(r5 + '\n' + '\n')
+        sr5 += 1
     for r6 in other :
-        resultPage.write(r6 + '\n')
+        resultPage.write(sother[sr6])
+        resultPage.write(r6 + '\n' + '\n')
+        sr6 += 1
 
 
     resultPage.close()
@@ -139,5 +158,12 @@ outStk = []
 futDel = []
 cantHave = []
 other = []
+
+sfreeDel = []
+sfreeNex = []
+soutStk = []
+sfutDel = []
+scantHave = []
+sother = []
 
 scraper("skus.txt")

@@ -1,10 +1,6 @@
-Also add a failback in case none of the terms are found
-
 Add the ability to quickly check a single SKU
 
 Add instructions
-
-Pull the SKU as well
 
 Add options to pull the price
 
