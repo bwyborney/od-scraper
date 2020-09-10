@@ -1,3 +1,5 @@
+Also add a failback in case none of the terms are found
+
 Add the ability to quickly check a single SKU
 
 Add instructions
@@ -26,3 +28,5 @@ Compile everything into a package that users can download and use without having
 Add sorting options (sort by price, sort by name)
 
 Barcode generator
+
+Percent complete indicator?

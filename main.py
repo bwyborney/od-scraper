@@ -20,7 +20,7 @@ def scraper(txtSKUS) :
     skus = open(txtSKUS)
 
     # These are all the possible terms I've found on the website so far
-    searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available"]
+    searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "Free Store Pickup in 1 Hour"]
 
     for l in skus :
         statusFound = False
@@ -65,6 +65,8 @@ def resulter(writeValue, writeTitle) :
         futDel.append(writeTitle)
     elif writeValue == "This item is no longer available" :
         cantHave.append(writeTitle)
+    elif writeValue == "Free Store Pickup in 1 Hour" :
+        storeOnly.append(writeTitle)
 
 
 ### Finalize - write all the product titles to a file under a heading that shows their availability
@@ -90,6 +92,8 @@ def finisher() :
         resultPage.write(r4 + '\n')
     for r5 in cantHave :
         resultPage.write(r5 + '\n')
+    for r6 in storeOnly :
+        resultPage.write(r6 + '\n')
 
 
     resultPage.close()
@@ -122,5 +126,6 @@ freeNex = []
 outStk = []
 futDel = []
 cantHave = []
+storeOnly = []
 
 scraper("skus.txt")
