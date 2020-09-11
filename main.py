@@ -72,7 +72,7 @@ def resulter(writeValue, writeTitle, itemSKU) :
         soutStk.append(itemSKU)
     elif writeValue == "Available for future delivery" :
         futDel.append(writeTitle)
-        sfutdel.append(itemSKU)
+        sfutDel.append(itemSKU)
     elif writeValue == "This item is no longer available" :
         cantHave.append(writeTitle)
         scantHave.append(itemSKU)
@@ -134,19 +134,25 @@ def finisher() :
 def titleGrabber(URL) :
     # Make HTTP request
     webpage = requests.get(URL)
-    # Parse only h1 tags with the two specific attributes that are used for the product title and only the product title on every page
-    onlyTitle = SoupStrainer("h1")
-    asoup = BeautifulSoup(webpage.text, "lxml", parse_only=onlyTitle)
+    asoup = BeautifulSoup(webpage.text, "lxml")
     bsoup = asoup.find(class_="semi_bold fn", itemprop="name")
+
+    # Sometimes, if a SKU is permanently unavailable, its page will use slightly different code,
+    # so the search for itemprop name will be unsuccessful. If that happens, this if/else will
+    # search for these other tags instead, because we still want the title.
+    if str(bsoup) == "None" :
+        csoup = asoup.find(class_="fn clear")
+    else :
+        csoup = bsoup
+
     # Not sure why I chose this name
     thingy = 0
     # This is a clunky and lazy way to deal with the fact that the parser above return extra information, including tons of blankspace and the contents of the p tag inside the h1 tag
     # Strip the blankspace, and only pull the first line, which is the title of the product
-    for stringy in bsoup.stripped_strings :
+    for stringy in csoup.stripped_strings :
         if thingy == 0 :
             bstitle = stringy
         thingy += 1
-
     return bstitle
 
 

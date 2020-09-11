@@ -8,8 +8,6 @@ Add some sort of GUI or even TUI to make this more user-friendly
 
 Improve the formatting of the final output file
 
-Provide a list of common and popular SKUs including desks, chairs, monitors, computers, and printers
-
 Add the ability to add headers to the SKU list so the program can break everything into categories
 For example (and these are made-up SKUs)
 h-Printers
