@@ -172,4 +172,29 @@ sfutDel = []
 scantHave = []
 sother = []
 
-scraper("skus.txt")
+print("---OD-Scraper by Ben Wyborney--")
+print("Would you like insructions? Type yes or no, then hit the enter key.")
+instructAsk = input("~:>")
+while instructAsk != "yes" and instructAsk != "no" :
+    print("Hmmm I'm looking for yes or no. ")
+    instructAsk = input("~:>")
+
+if instructAsk == "yes" :
+    print("Alright, it's pretty simple. The program will look for a text file called skus.txt.")
+    print("You should see that you already have this file, and when you open it, that it's empty.")
+    print("All you need to do is fill that file with the SKUs you want to search for. There should be one SKU per line, with no spaces before.")
+    print("For example:")
+    print("101095")
+    print("102866")
+    print("119694")
+    print("163691")
+    print("216230")
+    print('\n' + "Once you've done that, go ahead and save the file, then come back here and type ok, and hit enter.")
+    readyOrNot = input("~:>")
+    while readyOrNot != "ok" :
+        print("Hmmm I'm looking for ok.")
+        readyOrNot = input("~:>")
+    scraper("skus.txt")
+else :
+    print("Alright, I'll go ahead and get started.")
+    scraper("skus.txt")

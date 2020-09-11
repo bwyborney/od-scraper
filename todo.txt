@@ -1,7 +1,5 @@
 Add the ability to quickly check a single SKU
 
-Add instructions
-
 Add options to pull the price
 
 Add some sort of GUI or even TUI to make this more user-friendly
