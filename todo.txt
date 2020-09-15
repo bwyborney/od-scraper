@@ -42,3 +42,23 @@ Make it into an android app and look into loading it on the zebras
 Make a nice-looking website that people can use to download or use the thing
 
 Make it usable for other stores, like best buy, target, etc.
+
+
+
+
+
+---Webpage structure, bottom-up---
+Python script should be able to add results as lines with simple HTML tags, so these need somewhere to go that isn't bound by line number
+These tags should be parseable by Javascript so that the page can be sorted and rearranged as needed
+  I'm not sure how to do this but I figure that they should have a class that is named by their category and availability. So, <p class="sku laptops available">HP 15-kdk39 laptop</p> or <p class="sku monitors backordered">Dell 27" monitor j3909</p>
+The python script should just write all these lines to an html file with no stucture, just these lines if possible.
+A javascript program will run through and re-write the webpage to put these in the correct places. For now I should focus on making a default sorting and layout, and later I can figure out how to make it rearrangeable. I think the default should look like this, and this is what the main HTML file will look like for now:
+  A simple header, followed by three collpasible sections: available, unavailable, and backordered. By default, the "available" section will be opened up\
+  Actually, under the header, show the last time this was updated. Also have a search bar which will allow you to query a particular SKU, or a button to upload a list of SKUs. This will be the primary way of interacting with the page, with the secondary way being to just use the regularly uploaded lists that include everything.
+  Within these three different sections, it will be broken down by category. So printers, monitors, laptops, etc.
+  Everything within each section will be sorted alphabetically
+Once it comes time to make everything sortable, here's how it will work:
+  A sidebar that allows for navigation by jumping to different sections. Available > printer monitors desktops, unavailable > printers monitors desktops, backordered > printers desktops (in this scenario there are no backordered monitors, and the program should know that)
+  An option to sort by name or price
+  A search bar on top to search a particular SKU
+Late addition: allow for creating a separate instance of the whole thing, from the webpage title to the SKU lists that are used. The idea here is that I could have a page that contains a complete set of SKUs, which runs on a schedule, and everyone can make use of it; then, if I wanted, I could create an instance for store 6817, which will also run on a schedule that I will decide, and will use a different set of SKUs and a different URL or HTML file. This way I can easily pull of one version that's useful for people who don't care if it's online-only or not, and I can pull up a version to use when talking to someone who's primarily interested in, say, chairs they can actually try in-person, or monitors they can put their eyes on before they buy them.
