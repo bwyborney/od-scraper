@@ -105,14 +105,14 @@ def finisher() :
         sr2 += 1
 
     # Products marked with "Available for future delivery" are listed as backordered
-    resultPage.write("----------" + '\n' + "---Backordered---" + '\n')
+    resultPage.write("----------" + '\n' + '\n' + '\n' + "---Backordered---" + '\n')
     for r3 in futDel :
         resultPage.write(sfutDel[sr3])
         resultPage.write(r3 + '\n' + '\n')
         sr3 += 1
 
     # Products marked with "Out of stock for delivery" or "This item is no longer available" are listed as unavailable
-    resultPage.write("----------" + '\n' + "---Unavailable---" + '\n')
+    resultPage.write("----------" + '\n'+ '\n' + '\n'  + "---Unavailable---" + '\n')
     for r4 in outStk :
         resultPage.write(soutStk[sr4])
         resultPage.write(r4 + '\n' + '\n')
