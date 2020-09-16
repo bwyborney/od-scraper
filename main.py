@@ -10,14 +10,16 @@ bwyborney@protonmail.com as well. Thanks again for checking out my project, and 
 
 
 import os.path
+import os
 from os import path
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 import requests
 
 ### Scraper - sends HTTP requests to the pages for each SKU, then checks for availability
-def scraper(txtSKUS) :
-    skus = open(txtSKUS)
+def scraper(txtSKUS, category) :
+    specific = ("skuLists/" + txtSKUS)
+    skus = open(specific)
 
     # These are all the possible terms I've found on the website so far
     searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "other"]
@@ -57,7 +59,7 @@ def scraper(txtSKUS) :
             resulter(status, itemTitle, l)
 
     skus.close()
-    finisher()
+    finisher(category)
 
 ### Results sorter - pretty simple, just adds the product name to the correct list
 def resulter(writeValue, writeTitle, itemSKU) :
@@ -82,7 +84,7 @@ def resulter(writeValue, writeTitle, itemSKU) :
 
 
 ### Finalize - write all the product titles to a file under a heading that shows their availability
-def finisher() :
+def finisher(catName) :
     sr1 = 0
     sr2 = 0
     sr3 = 0
@@ -90,8 +92,10 @@ def finisher() :
     sr5 = 0
     sr6 = 0
 
+    resultsPageName = ("results_" + catName)
+
     # Append the results to a file called results. If there isn't such a file already, creates one
-    resultPage = open("results", "a")
+    resultPage = open(resultsPageName, "a")
 
     # Products marked with "Free delivery" or "Free next business day delivery" are listed as available
     resultPage.write("---AVAILABLE---" + '\n')
@@ -172,13 +176,18 @@ sfutDel = []
 scantHave = []
 sother = []
 
+# Pull all the text files placed in the the skuLists directory
+skulists = os.listdir("skuLists")
+
+# The beginning of the program
 print("---OD-Scraper by Ben Wyborney--")
 print("Would you like insructions? Type yes or no, then hit the enter key.")
-instructAsk = input("~:>")
+instructAsk = input("~:> ")
 while instructAsk != "yes" and instructAsk != "no" :
     print("Hmmm I'm looking for yes or no. ")
     instructAsk = input("~:>")
 
+# Instructions for new users
 if instructAsk == "yes" :
     print("Alright, it's pretty simple. The program will look for a text file called skus.txt.")
     print("You should see that you already have this file, and when you open it, that it's empty.")
@@ -194,7 +203,13 @@ if instructAsk == "yes" :
     while readyOrNot != "ok" :
         print("Hmmm I'm looking for ok.")
         readyOrNot = input("~:>")
-    scraper("skus.txt")
+    # Run through the program once for every sku list
+    for sl in skulists :
+        slr  = sl.replace(".txt", "")
+        scraper(sl, slr)
 else :
     print("Alright, I'll go ahead and get started.")
-    scraper("skus.txt")
+    # Run through the program once for every sku list
+    for sl in skulists :
+        slr  = sl.replace(".txt", "")
+        scraper(sl, slr)
