@@ -5,9 +5,8 @@ to make it clear that I am NOT a programmer and I have NO idea what I'm doing - 
 together to make my life at work a little bit easier. Feel free to use this however you'd like, and
 definitely feel free to fork this project if you're a more skilled coder than me. If you do choose to fork
 this and improve it, I'll probably end up using your version, honestly. You can send me feedback at
-bwyborney@protonmail.com as well. Thanks again for checking out my project, and stay safe!
+bwyborney@protonmail.com as well. Thanks again for checking out my project!
 """
-
 
 import os.path
 import os
@@ -20,6 +19,9 @@ import requests
 def scraper(txtSKUS, category) :
     specific = ("skuLists/" + txtSKUS)
     skus = open(specific)
+    print("----------")
+    print("Currently checking up on:")
+    print(category)
 
     # These are all the possible terms I've found on the website so far
     searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "other"]
@@ -91,8 +93,8 @@ def finisher(catName) :
     sr4 = 0
     sr5 = 0
     sr6 = 0
-
-    resultsPageName = ("results_" + catName)
+    # Set the name of the file to match the name of the original .txt file with the SKUs, while adding "results." So, the results from skuLists/monitors.txt becomes results_monitors
+    resultsPageName = ("results/results_" + catName + ".txt")
 
     # Append the results to a file called results. If there isn't such a file already, creates one
     resultPage = open(resultsPageName, "a")
@@ -130,6 +132,21 @@ def finisher(catName) :
         resultPage.write(r6 + '\n' + '\n')
         sr6 += 1
 
+    # Remove everything from this list because, now that their purpose has been served, they need to be empty for the next category
+    # I accidentally didn't do this the first time, and I ended up with results pages ranging from the expected 40ish lines to above 700 lines
+    freeDel.clear()
+    freeNex.clear()
+    outStk.clear()
+    futDel.clear()
+    cantHave.clear()
+    other.clear()
+
+    sfreeDel.clear()
+    sfreeNex.clear()
+    soutStk.clear()
+    sfutDel.clear()
+    scantHave.clear()
+    sother.clear()
 
     resultPage.close()
 
@@ -160,7 +177,6 @@ def titleGrabber(URL) :
     return bstitle
 
 
-### Initialize
 # Creating these variables as lists. They won't be used until later, but they need to be set up ahead of time
 freeDel = []
 freeNex = []
@@ -205,11 +221,13 @@ if instructAsk == "yes" :
         readyOrNot = input("~:>")
     # Run through the program once for every sku list
     for sl in skulists :
+        # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
         slr  = sl.replace(".txt", "")
         scraper(sl, slr)
 else :
     print("Alright, I'll go ahead and get started.")
     # Run through the program once for every sku list
     for sl in skulists :
+        # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
         slr  = sl.replace(".txt", "")
         scraper(sl, slr)
