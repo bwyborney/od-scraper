@@ -93,21 +93,29 @@ def finisher(catName) :
     sr4 = 0
     sr5 = 0
     sr6 = 0
+    pTag1 = "<p class=\"sku "
+    pTag2 = "\">"
+    pTag3="</p>"
+    brTag = "<br>"
     # Set the name of the file to match the name of the original .txt file with the SKUs, while adding "results." So, the results from skuLists/monitors.txt becomes results_monitors
     resultsPageName = ("results/results_" + catName + ".txt")
+    resultsWebPageName = ("results/results_" + catName + ".html")
 
     # Append the results to a file called results. If there isn't such a file already, creates one
     resultPage = open(resultsPageName, "a")
+    resultWebPage = open(resultsWebPageName, "a")
 
     # Products marked with "Free delivery" or "Free next business day delivery" are listed as available
     resultPage.write("---AVAILABLE---" + '\n')
     for r1 in freeDel :
         resultPage.write(sfreeDel[sr1])
         resultPage.write(r1 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "available" + pTag2 + sfreeDel[sr1] + brTag + r1 + pTag3 + '\n')
         sr1 += 1
     for r2 in freeNex :
         resultPage.write(sfreeNex[sr2])
         resultPage.write(r2 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "available" + pTag2 + sfreeNex[sr2] + brTag + r2 + pTag3 + '\n')
         sr2 += 1
 
     # Products marked with "Available for future delivery" are listed as backordered
@@ -115,6 +123,7 @@ def finisher(catName) :
     for r3 in futDel :
         resultPage.write(sfutDel[sr3])
         resultPage.write(r3 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "backordered" + pTag2 + sfutDel[sr3] + brTag + r3 + pTag3 + '\n')
         sr3 += 1
 
     # Products marked with "Out of stock for delivery" or "This item is no longer available" are listed as unavailable
@@ -122,14 +131,17 @@ def finisher(catName) :
     for r4 in outStk :
         resultPage.write(soutStk[sr4])
         resultPage.write(r4 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "unavailable" + pTag2 + soutStk[sr4] + brTag + r4 + pTag3 + '\n')
         sr4 += 1
     for r5 in cantHave :
         resultPage.write(scantHave[sr5])
         resultPage.write(r5 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "unavailable" + pTag2 + scantHave[sr5] + brTag + r5 + pTag3 + '\n')
         sr5 += 1
     for r6 in other :
         resultPage.write(sother[sr6])
         resultPage.write(r6 + '\n' + '\n')
+        resultWebPage.write(pTag1 + catName + " " + "unavailable" + pTag2 + sother[sr6] + brTag + r6 + pTag3 + '\n')
         sr6 += 1
 
     # Remove everything from this list because, now that their purpose has been served, they need to be empty for the next category
@@ -149,6 +161,7 @@ def finisher(catName) :
     sother.clear()
 
     resultPage.close()
+    resultWebPage.close()
 
 
 ### Title grabber - gets the name of the product from the webpage
