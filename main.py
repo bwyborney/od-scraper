@@ -31,13 +31,19 @@ def scraper(txtSKUS, category) :
     # Open a file from the skuLists directory
     skuListFileName = ("skuLists/" + txtSKUS)
     skus = open(skuListFileName)
-    print("----------")
-    print("Currently checking:")
-    print(category)
 
     # These are all the possible terms I've found on the website so far, and we'll check for each one until we've found a match
     searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "other"]
-
+    # Count the number of lines in the file, to be used as the denominator to calculate completion percent
+    numerator = 0.0
+    denominator = 0.0
+    for counter in skus :
+        denominator +=1
+    skus.close()
+    strDenominator = denominator
+    denomInt = int(denominator)
+    print("Checking " + str(denomInt) + " skus in " + category)
+    skus = open(skuListFileName)
     for l in skus :
         # Call the barcoder function and pass it l, which is the SKU number
         barcoder(l)
@@ -55,7 +61,14 @@ def scraper(txtSKUS, category) :
         stringyThingy = str(soup2)
         # Reset the index
         stIndex = 0
-        print("Checking sku " + l)
+        # Print the SKU that's currently being checked
+        stripThis = l
+        strippedSkuOnly = stripThis.strip()
+        # Print the current SKU and completion percent
+        percent = numerator / denominator * 100.0
+        percentRnd = round(percent, 2)
+        percentStr = str(percentRnd)
+        print("Completion: " + percentStr + "%... checking sku " + strippedSkuOnly, end="\r")
 
         # Check the contents of the skuAvailability tag for each possible value, and once the correct one is found, send it to the resulter function
         while statusFound == False and stIndex < 5 :
@@ -69,6 +82,7 @@ def scraper(txtSKUS, category) :
                 statusFound = True
             else :
                 stIndex += 1
+        numerator += 1
 
         # Fallback in case none of the search terms are found. This will label the SKU status as "other"
         # I've only needed this so far for pages with "this product is no longer available," which don't have any elements using the skuAvailability id
@@ -79,6 +93,7 @@ def scraper(txtSKUS, category) :
 
     skus.close()
     # Call the "finisher" function, which puts everything together into a nice PDF
+    denominator = 0
     finisher(category)
 
 ### Results sorter - checks the contents of the skuAvailability tag from the scraper function, and puts it in a list that corresponds to its availablitiy
@@ -137,13 +152,14 @@ def finisher(catName) :
     # This is where the barcode file will go
     imgTag1 = "<img class=\"barcode\" src=\"./barcodes/"
     imgTag2 = ".png\"></div>"
+    # Get the date and time, and add the <h1> tag to the HTML file
+    todaysDate = datetime.now()
+    dateString = todaysDate.strftime("%m/%d @ %H:%M")
+    fileDate = todaysDate.strftime("_%m-%d_%H%M")
     # Copy the results.html file, which is essentially a template, and name the copy after the skuList file
     resultsWebPageName = ("results/results_" + catName + ".html")
     copy("resources/results.html", resultsWebPageName)
     resultWebPage = open(resultsWebPageName, 'a+')
-    # Get the date and time, and add the <h1> tag to the HTML file
-    todaysDate = datetime.now()
-    dateString = todaysDate.strftime("%m/%d @ %H:%M")
     webPageTitle = ("<h1>" + catName + " - " + dateString + "</h1>")
     resultWebPage.write(webPageTitle)
     # Write in a new div for available SKUs
@@ -219,7 +235,7 @@ def finisher(catName) :
     resultWebPage.close()
     # Convert the HTML file into a PDF. Useful because PDFs can be easily shared and viewed on any device, and don't require external images files like a webpage
     # Name the PDF file
-    resultPdfPageName = ("results/results_" + catName + ".pdf")
+    resultPdfPageName = ("results/" + catName + fileDate + ".pdf")
     # Use weasyprint to convert the HTML file into a PDF
     resultPdfPage = weasyprint.HTML(resultsWebPageName).write_pdf()
     open(resultPdfPageName, 'wb').write(resultPdfPage)
@@ -278,7 +294,6 @@ skulists = os.listdir("skuLists")
 
 # The beginning of the program
 print("---OD-Scraper by Ben Wyborney--")
-print("Would you like insructions? Type yes or no, then hit the enter key.")
 for sl in skulists :
     # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
     slr  = sl.replace(".txt", "")
