@@ -7,35 +7,44 @@ definitely feel free to fork this project if you're a more skilled coder than me
 this and improve it, I'll probably end up using your version, honestly. You can send me feedback at
 bwyborney@protonmail.com as well. Thanks again for checking out my project!
 """
-
+# Used for saving and manipulating files
 import os.path
 import os
 from os import path
+from shutil import copy
+# Used to generate a PDF file from an HTML file
+import weasyprint
+# Used to send HTTP requests
+import requests
+# Used to parse the webpages for specific tags
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
-import requests
+# Used to create barcodes from any number. I'm using Code128 because it is widely used and can support my need for just 6-8 numbers and nothing else
 from barcode import Code128
 from barcode.writer import ImageWriter
-from shutil import copy
+# Gets the date and time, which is important because I've seen availability change by the day or even the hour
 from datetime import datetime
-import weasyprint
+
 
 ### Scraper - sends HTTP requests to the pages for each SKU, then checks for availability
 def scraper(txtSKUS, category) :
-    specific = ("skuLists/" + txtSKUS)
-    skus = open(specific)
+    # Open a file from the skuLists directory
+    skuListFileName = ("skuLists/" + txtSKUS)
+    skus = open(skuListFileName)
     print("----------")
     print("Currently checking:")
     print(category)
 
-    # These are all the possible terms I've found on the website so far
+    # These are all the possible terms I've found on the website so far, and we'll check for each one until we've found a match
     searchTerms = ["Free delivery", "Free next business day delivery", "Out of stock for delivery", "Available for future delivery", "This item is no longer available", "other"]
 
     for l in skus :
+        # Call the barcoder function and pass it l, which is the SKU number
         barcoder(l)
         statusFound = False
+        # Type this URL and add any SKU number to the end and you'll get redirected to the correct product page
         url = ("https://officedepot.com/a/products/" + l)
-        # Make HTTP request and parse it using BeautifulSoup
+        # Make HTTP request
         webpage1 = requests.get(url)
         # Only parse div tags
         onlyStatus = SoupStrainer("div")
@@ -44,7 +53,7 @@ def scraper(txtSKUS, category) :
         soup2 = soup1.find(id="skuAvailability")
         # It's late and I'm tired, so this variable is called stringyThingy. Before, it was a thingy, but now, now it is also stringy
         stringyThingy = str(soup2)
-
+        # Reset the index
         stIndex = 0
         print("Checking sku " + l)
 
@@ -53,26 +62,31 @@ def scraper(txtSKUS, category) :
             checkFor = searchTerms[stIndex]
             if checkFor in stringyThingy :
                 status = searchTerms[stIndex]
-                # Get the title of the product from the webpage
+                # Call the titleGrabber function to get the title of the product from the webpage
                 itemTitle = titleGrabber(url)
+                # Call the resulter function and pass it the SKU status that we found, the name of the product which we got from titleGrabber, and the SKU number
                 resulter(status, itemTitle, l)
                 statusFound = True
             else :
                 stIndex += 1
 
-        # Failback in case none of the search terms are found
+        # Fallback in case none of the search terms are found. This will label the SKU status as "other"
+        # I've only needed this so far for pages with "this product is no longer available," which don't have any elements using the skuAvailability id
         if stIndex == 5 :
             status = searchTerms[stIndex]
             itemTitle = titleGrabber(url)
             resulter(status, itemTitle, l)
 
     skus.close()
+    # Call the "finisher" function, which puts everything together into a nice PDF
     finisher(category)
 
-### Results sorter - pretty simple, just adds the product name to the correct list
+### Results sorter - checks the contents of the skuAvailability tag from the scraper function, and puts it in a list that corresponds to its availablitiy
 def resulter(writeValue, writeTitle, itemSKU) :
     if writeValue == "Free delivery" :
+        # Add the title of the product to a list of other product titles that are listed as availabel for free delivery
         freeDel.append(writeTitle)
+        # Add the SKU number to a separate but parallel list
         sfreeDel.append(itemSKU)
     elif writeValue == "Free next business day delivery" :
         freeNex.append(writeTitle)
@@ -92,8 +106,10 @@ def resulter(writeValue, writeTitle, itemSKU) :
 
 ### Barcode generator
 def barcoder(badSku) :
+    # Convert the SKU number into a string and strip the blankspace
     goodSku = str(badSku)
     itemNumber = goodSku.strip()
+    # Create a filename for the barcode image, which will be the SKU number with a .png extension
     filename = "results/barcodes/" + itemNumber
     barcode = Code128(itemNumber, writer=ImageWriter())
     barcode.save(filename)
@@ -101,34 +117,41 @@ def barcoder(badSku) :
 
 ### Finalize - write all the product titles to a file under a heading that shows their availability
 def finisher(catName) :
+    # Reset all the indexes to 0, only makes a difference if you're using multiple skuLists files since this function will need to be run multiple times
     sr1 = 0
     sr2 = 0
     sr3 = 0
     sr4 = 0
     sr5 = 0
     sr6 = 0
+    # Strings with HTML inside. There will be a line of HTML for every item, and these particular strings will be reused for each one
+    # Start new div and create a hyperlink to the product page
     aTag1 = "<div class=\"product\"><a href=\"https://officedepot.com/a/products/"
     aTag2 = "\">"
     aTag3 = "</a>"
+    # The product title will go in here
     pTag1 = "<p class=\"sku "
     pTag2 = "\">"
     pTag3="</p>"
     brTag = "<br>"
+    # This is where the barcode file will go
     imgTag1 = "<img class=\"barcode\" src=\"./barcodes/"
     imgTag2 = ".png\"></div>"
-
+    # Copy the results.html file, which is essentially a template, and name the copy after the skuList file
     resultsWebPageName = ("results/results_" + catName + ".html")
     copy("resources/results.html", resultsWebPageName)
     resultWebPage = open(resultsWebPageName, 'a+')
+    # Get the date and time, and add the <h1> tag to the HTML file
     todaysDate = datetime.now()
     dateString = todaysDate.strftime("%m/%d @ %H:%M")
-
-    webPageTile = ("<h1>" + catName + " - " + dateString + "</h1>")
-    resultWebPage.write(webPageTile)
+    webPageTitle = ("<h1>" + catName + " - " + dateString + "</h1>")
+    resultWebPage.write(webPageTitle)
+    # Write in a new div for available SKUs
     resultWebPage.write("</div>")
     resultWebPage.write("<div id=\"contents\">")
     resultWebPage.write("<div class=\"sectionHeader\">Available</div>")
     resultWebPage.write("<div class=\"SKUS\">")
+    # Write in every "available" product, along with its corresponsing hyperlink and barcode. Each product gets its own div too
     # Products marked with "Free delivery" or "Free next business day delivery" are listed as available
     for r1 in freeDel :
         sSr1 = str(sfreeDel[sr1])
@@ -140,6 +163,7 @@ def finisher(catName) :
         strippedSkuFN = sSr2.strip()
         resultWebPage.write(aTag1 + strippedSkuFN + aTag2 + pTag1 + catName + " " + "available" + pTag2 + strippedSkuFN + brTag + r2 + pTag3 + aTag3 + imgTag1 + str(strippedSkuFN) + imgTag2 + '\n')
         sr2 += 1
+    # Start the backordered section
     resultWebPage.write("</div>")
     resultWebPage.write("<div class=\"sectionHeader\">Backordered</div>")
     resultWebPage.write("<div class=\"SKUS\">")
@@ -150,11 +174,12 @@ def finisher(catName) :
         strippedSkuFU = sSr3.strip()
         resultWebPage.write(aTag1 + strippedSkuFU + aTag2 + pTag1 + catName + " " + "backordered" + pTag2 + strippedSkuFU + brTag + r3 + pTag3 + aTag3  + imgTag1 + str(strippedSkuFU) + imgTag2 + '\n')
         sr3 += 1
+    # Start the unavailable section
     resultWebPage.write("</div>")
     resultWebPage.write("<div class=\"sectionHeader\">Unavailable</div>")
     resultWebPage.write("<div class=\"SKUS\">")
 
-    # Products marked with "Out of stock for delivery" or "This item is no longer available" are listed as unavailable
+    # Products marked with "Out of stock for delivery," "This item is no longer available," or "other" are listed as unavailable
     for r4 in outStk :
         sSr4 = str(soutStk[sr4])
         strippedSkuOS = sSr4.strip()
@@ -170,13 +195,13 @@ def finisher(catName) :
         strippedSkuOT = sSr6.strip()
         resultWebPage.write(aTag1 + strippedSkuOT + aTag2 + pTag1 + catName + " " + "unavailable" + pTag2 + strippedSkuOT + brTag + r6 + pTag3 + aTag3 + imgTag1 + str(strippedSkuOT) + imgTag2 + '\n')
         sr6 += 1
+    # Write the closing lines of HTML
     resultWebPage.write("</div>")
     resultWebPage.write("</div>")
     resultWebPage.write("</body>")
     resultWebPage.write("</html>")
 
-    # Remove everything from this list because, now that their purpose has been served, they need to be empty for the next category
-    # I accidentally didn't do this the first time, and I ended up with results pages ranging from the expected 40ish lines to above 700 lines
+    # Empty the lists because they need to be empty for the next skuList
     freeDel.clear()
     freeNex.clear()
     outStk.clear()
@@ -192,36 +217,31 @@ def finisher(catName) :
     sother.clear()
 
     resultWebPage.close()
-    #finalHtml = open(resultsWebPageName, 'r')
-
+    # Convert the HTML file into a PDF. Useful because PDFs can be easily shared and viewed on any device, and don't require external images files like a webpage
+    # Name the PDF file
     resultPdfPageName = ("results/results_" + catName + ".pdf")
+    # Use weasyprint to convert the HTML file into a PDF
     resultPdfPage = weasyprint.HTML(resultsWebPageName).write_pdf()
     open(resultPdfPageName, 'wb').write(resultPdfPage)
 
-"""
-    resultsWebPageName = ("results/results_" + catName + ".pdf")
-    resultWebPageStringUnicode = finalHtml.read()
-    resultWebPageString = resultWebPageStringUnicode.replace('\u2122', '')
-    print(resultWebPageString)
-    resultPdfPage = MyFPDF()
-    resultPdfPage.add_page()
-    resultPdfPage.write_html(resultWebPageString)
-    resultPdfPage.output(resultsWebPageName, 'F')
-"""
-
-
-
+    # Now that we have a PDF with everything we need, we are essentially done with this skuList, or possibly the whole program, so we can clean up the unecessary files we created
+    # Delete the HTML file
+    os.remove(resultsWebPageName)
+    # Delete all the barcode images
+    for barcodeFile in os.listdir("results/barcodes") :
+        removeThis = "results/barcodes/" + barcodeFile
+        os.remove(removeThis)
 
 ### Title grabber - gets the name of the product from the webpage
 def titleGrabber(URL) :
     # Make HTTP request
     webpage = requests.get(URL)
+    # Parse the webpage with beautiful soup
     asoup = BeautifulSoup(webpage.text, "lxml")
+    # Narrow it down to just the element that contains the product title
     bsoup = asoup.find(class_="semi_bold fn", itemprop="name")
 
-    # Sometimes, if a SKU is permanently unavailable, its page will use slightly different code,
-    # so the search for itemprop name will be unsuccessful. If that happens, this if/else will
-    # search for these other tags instead, because we still want the title.
+    # Fallback in case the webpage doesn't has an element with itemprop = "name". So far, in all these cases, the product title has instead been in an element with class="fn clear"
     if str(bsoup) == "None" :
         csoup = asoup.find(class_="fn clear")
     else :
@@ -229,12 +249,12 @@ def titleGrabber(URL) :
 
     # Not sure why I chose this name
     thingy = 0
-    # This is a clunky and lazy way to deal with the fact that the parser above return extra information, including tons of blankspace and the contents of the p tag inside the h1 tag
-    # Strip the blankspace, and only pull the first line, which is the title of the product
+    # The value from the bs parser usually contains extra information, including a lot of blankspace and an unwanted <p> tag, so this will remove that
     for stringy in csoup.stripped_strings :
         if thingy == 0 :
             bstitle = stringy
         thingy += 1
+    # Now we've got the name of the product
     return bstitle
 
 
@@ -259,36 +279,8 @@ skulists = os.listdir("skuLists")
 # The beginning of the program
 print("---OD-Scraper by Ben Wyborney--")
 print("Would you like insructions? Type yes or no, then hit the enter key.")
-instructAsk = input("~:> ")
-while instructAsk != "yes" and instructAsk != "no" :
-    print("Hmmm I'm looking for yes or no. ")
-    instructAsk = input("~:>")
-
-# Instructions for new users
-if instructAsk == "yes" :
-    print("Alright, it's pretty simple. The program will look for a text file called skus.txt.")
-    print("You should see that you already have this file, and when you open it, that it's empty.")
-    print("All you need to do is fill that file with the SKUs you want to search for. There should be one SKU per line, with no spaces before.")
-    print("For example:")
-    print("101095")
-    print("102866")
-    print("119694")
-    print("163691")
-    print("216230")
-    print('\n' + "Once you've done that, go ahead and save the file, then come back here and type ok, and hit enter.")
-    readyOrNot = input("~:>")
-    while readyOrNot != "ok" :
-        print("Hmmm I'm looking for ok.")
-        readyOrNot = input("~:>")
-    # Run through the program once for every sku list
-    for sl in skulists :
-        # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
-        slr  = sl.replace(".txt", "")
-        scraper(sl, slr)
-else :
-    print("Alright, I'll go ahead and get started.")
-    # Run through the program once for every sku list
-    for sl in skulists :
-        # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
-        slr  = sl.replace(".txt", "")
-        scraper(sl, slr)
+for sl in skulists :
+    # Determine what the name of this list, or "category" will be by taking the name of the file and removing the ".txt"
+    slr  = sl.replace(".txt", "")
+    # Pass the filename with and without the .txt extension to the scraper function
+    scraper(sl, slr)
